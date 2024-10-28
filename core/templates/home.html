@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação INSS</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav id="navbar">
+            <i class="fa-solid fa-burger" id="navicon">
+                <img src="{% static 'assets/GRP branding.LOGOMARCA.png' %}" alt="Logo" id="logo"> CALCULADORA GRP
+            </i>
+            <ul id="nav_list">
+                <li class="nav_item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="nav_item"><a href="{% url 'getUser' %}">Meu Perfil</a></li>
+                <li class="nav_item"><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Planeje Renda Futura: INSS, Desejada & Possível</h1>
+        <h6>Planeje & Calcule sua Renda Futura em 2 Etapas</h6>
+        <p>Em duas etapas, descubra sua Renda Futura resultado da soma do seu esforço de poupança e do seu Benefício de Aposentadoria!</p>
+
+        <!-- Div para a Calculadora 1 - INSS -->
+        <div class="calculadora">
+            <h2>1 - Calcule Renda de Aposentadoria pelo INSS</h2>
+            <form id="inss-form" method="POST">
+                {% csrf_token %}
+                <label for="sexo">Sexo:</label>
+                <select name="sexo" id="sexo" required>
+                    <option value="M">Masculino</option>
+                    <option value="F">Feminino</option>
+                </select>
+                <label for="salario_bruto">Salário Bruto Atual (R$):</label>
+                <input type="number" name="salario_bruto" id="salario_bruto" min="0" required>
+                <button type="button" class="botao_padrao" id="inss-calculate-btn">Calcular Benefício INSS</button>
+            </form>
+            <p id="inss-result"></p>
+
+            <h2>Upload do CNIS (PDF)</h2>
+            <form action="#" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="cnis_pdf" accept=".pdf">
+                <button type="submit">Carregar CNIS</button>
+                <a href="#" target="_blank" class="btnPadrao">Baixar Gráfico (PDF)</a>
+                <a href="#" target="_blank" class="btnPadrao">Baixar Relatório INSS (PDF)</a>
+            </form>
+        </div>
+
+        <!-- Div para a Calculadora 2 - Renda Desejada -->
+        <div class="calculadora">
+            <h2>2 - Calcule Renda Desejada & Possível Futura</h2>
+            <form id="income-simulation-form">
+                <label for="id_ini">Idade Atual:</label>
+                <input type="number" id="id_ini" min="15" max="100" value="25">
+                <label for="id_apos">Idade Aposentadoria:</label>
+                <input type="number" id="id_apos" min="15" max="120" value="65">
+                <label for="id_exp">Expectativa de Vida:</label>
+                <input type="number" id="id_exp" min="15" max="150" value="85">
+                <label for="id_reser">Reserva Financeira Atual (R$):</label>
+                <input type="number" id="id_reser" min="0" value="1000">
+                <label for="id_tx">Taxa real ano (%):</label>
+                <input type="number" id="id_tx" min="0.1" value="4">
+                <label for="id_inss">Benefício Esperado INSS (R$):</label>
+                <input type="number" id="id_inss" min="0" value="0">
+                <label for="id_dese">Renda Mensal DESEJADA (R$):</label>
+                <input type="number" id="id_dese" min="0" value="1000">
+                <label for="id_poss">Poupança Mensal POSSÍVEL (R$):</label>
+                <input type="number" id="id_poss" min="0" value="100">
+                <button type="button" id="submit-button">Condição p/ Renda Desejada</button>
+                <button type="button" id="submit-button2">Condição p/ Renda Possível</button>
+            </form>
+            <p id="income-result"></p>
+        </div>
+    </div>  
+
+    <footer class="footer">
+        <div class="footer-content">
+            <h2 class="footer-title">CALCULADORA GRP</h2>
+            <p class="footer-description">
+                Em duas etapas, descubra sua Renda Futura 
+                resultado da soma do seu esforço de poupança e do seu Benefício de Aposentadoria!
+            </p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-google-plus"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+            <p class="footer-copyright">
+                Copyright ©2020 GRP. Design By <a href="https://github.com/g-celente">Guilherme</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts para cálculo -->
+    <script>
+        // Cálculo do Benefício INSS
+        document.getElementById('inss-calculate-btn').addEventListener('click', function() {
+            const salarioBruto = parseFloat(document.getElementById('salario_bruto').value);
+            const beneficioInss = salarioBruto * 0.7; // Exemplo: 70% do salário bruto
+            document.getElementById('inss-result').innerText = 'Benefício INSS: R$ ' + beneficioInss.toFixed(2);
+        });
+
+        // Simulação de Renda Desejada
+        document.getElementById('submit-button').addEventListener('click', function() {
+            const idadeAtual = parseInt(document.getElementById('id_ini').value);
+            const idadeAposentadoria = parseInt(document.getElementById('id_apos').value);
+            const expectativaVida = parseInt(document.getElementById('id_exp').value);
+            const reservaAtual = parseFloat(document.getElementById('id_reser').value);
+            const taxaReal = parseFloat(document.getElementById('id_tx').value);
+            const beneficioInss = parseFloat(document.getElementById('id_inss').value);
+            const rendaDesejada = parseFloat(document.getElementById('id_dese').value);
+
+            const anosApos = expectativaVida - idadeAposentadoria;
+            const rendaTotal = reservaAtual + beneficioInss * anosApos;
+            const condicaoRendaDesejada = rendaTotal >= rendaDesejada;
+
+            document.getElementById('income-result').innerText = condicaoRendaDesejada
+                ? 'Condição para Renda Desejada alcançada!'
+                : 'Você precisa ajustar seus investimentos.';
+        });
+
+        // Simulação de Renda Possível
+        document.getElementById('submit-button2').addEventListener('click', function() {
+            const idadeAtual = parseInt(document.getElementById('id_ini').value);
+            const idadeAposentadoria = parseInt(document.getElementById('id_apos').value);
+            const expectativaVida = parseInt(document.getElementById('id_exp').value);
+            const poupancaMensal = parseFloat(document.getElementById('id_poss').value);
+            const reservaAtual = parseFloat(document.getElementById('id_reser').value);
+            const beneficioInss = parseFloat(document.getElementById('id_inss').value);
+
+            const anosInvestimento = idadeAposentadoria - idadeAtual;
+            const anosApos = expectativaVida - idadeAposentadoria;
+
+            const totalPoupado = reservaAtual + (poupancaMensal * anosInvestimento * 12);
+            const rendaMensalPossivel = (totalPoupado + beneficioInss * anosApos) / (anosApos * 12);
+
+            document.getElementById('income-result').innerText = 'Renda Mensal Possível: R$ ' + rendaMensalPossivel.toFixed(2);
+        });
+    </script>
+</body>
+</html>

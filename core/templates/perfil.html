@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação INSS</title>
+    <link rel="stylesheet" href="{% static 'css/perfil.css' %}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <header>
+        <nav id="navbar">
+            <i class="fa-solid fa-burger" id="navicon">
+                <img src="{% static 'assets/GRP branding.LOGOMARCA.png' %}" alt="Logo" id="logo"> CALCULADORA GRP
+            </i>
+            <ul id="nav_list">
+                <li class="nav_item"><a href="{% url 'home' %}">Home</a></li>
+                <li class="nav_item"><a href="{% url 'getUser' %}">Meu Perfil</a></li>
+                <li class="nav_item"><a href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="page-background">
+            <div class="container pt-5 flex flex-column justify-center">
+                <div class="user-img flex gap-1 align-center mb-5">
+                    <img
+                      src="{% static 'assets/user_default_png.png' %}"
+                      alt="Usuário sem imagem"
+                      width="200px"
+                    />
+                </div>
+                
+                <!-- Exibir Nome e Email do Usuário -->
+                {% if user %}
+                    <div class="user">
+                        <h2 class="mb-3">Bem-vindo, {{ user.first_name }}</h2>
+                        <h2 class="mb-3">Dados do Usuário:</h2>
+                        <div class="input-container mb-3">
+                            <label>Email:</label>
+                            <input class="input" type="password" placeholder="{{ user.email }}" />
+                        </div>
+                    </div>
+                {% else %}
+                    <p>Usuário não encontrado.</p>
+                {% endif %}
+
+                <form method="POST" action="{% url 'alterarSenha' %}">
+                    {% csrf_token %}
+                    <h2 class="mb-3">Alterar Senha</h2>
+                    
+                    <div class="input-container mb-3">
+                        <label>Nova Senha:</label>
+                        <input class="input" type="password" name="new_password" required />
+                    </div>
+                
+                    <div class="input-container mb-3">
+                        <label>Confirmar Senha:</label>
+                        <input class="input" type="password" name="confirm_password" required />
+                    </div>
+                  
+                    <div class="btns flex mt-4 gap-05">
+                        <button class="base-button" type="submit">Alterar Senha</button>
+                    </div>
+                </form>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="footer-content">
+            <h2 class="footer-title">CALCULADORA GRP</h2>
+            <p class="footer-description">
+                Em duas etapas, descubra sua Renda Futura 
+                resultado da soma do seu esforço de poupança e do seu Benefício de Aposentadoria!
+            </p>
+            <div class="footer-social">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-google-plus"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+            <p class="footer-copyright">
+                Copyright ©2020 GRP. Design By <a href="https://github.com/g-celente">Guilherme</a>
+            </p>
+        </div>
+    </footer>
+</body> 
+</html>
