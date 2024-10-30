@@ -1,32 +1,42 @@
 from django.shortcuts import redirect
-import jwt
 from django.conf import settings
+import jwt
 
 class TokenRequiredMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        print(request.path)
-        if request.path not in ['/login/', '/register/', '/logout/', '/forgotPassword/']:  # Ajuste as URLs que não requerem token
+        # Rotas que redirecionam para 'home' caso o token esteja nos cookies
+        public_routes = ['/login/', '/register/', '/forgotPassword/']
+        
+        # Verificar se a rota atual está em 'public_routes'
+        if request.path in public_routes:
             token = request.COOKIES.get('auth-token')
-            print(token)  # Obtendo o token dos cookies
-
+            # Se o token estiver nos cookies, redirecionar para 'home'
+            if token:
+                try:
+                    jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+                    return redirect('home')  # Redireciona para a página 'home'
+                except jwt.ExpiredSignatureError:
+                    print('Token expirado, redirecionando para login.')
+                    return redirect('login')
+                except jwt.InvalidTokenError:
+                    print('Token inválido, redirecionando para login.')
+                    return redirect('login')
+        
+        # Para outras rotas, exige o token se necessário
+        if request.path not in public_routes + ['/logout/']:
+            token = request.COOKIES.get('auth-token')
             if not token:
-                print('Token não encontrado, redirecionando para login.')
-                return redirect('login')  # Redireciona para a página de login
-            
+                return redirect('login')  # Redireciona para 'login' caso não tenha token
             try:
                 jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-                print('deu boa')
             except jwt.ExpiredSignatureError:
-                print('Token expirado, redirecionando para login.')
-                return redirect('login')  # Token expirado
+                return redirect('login')
             except jwt.InvalidTokenError:
-                print('Token inválido, redirecionando para login.')
-                return redirect('login')  # Token inválido
-            
+                return redirect('login')
         
+        # Chama a próxima middleware ou view
         response = self.get_response(request)
-        print(response)  # Aqui, chama a próxima middleware/view
-        return response  # Retorna a resposta final
+        return response
